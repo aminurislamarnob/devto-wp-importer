@@ -57,6 +57,7 @@ class RestFields {
                         'body_markdown' => [ 'type' => [ 'string', 'null' ] ],
                         'reactions'     => [ 'type' => [ 'integer', 'null' ] ],
                         'comments'      => [ 'type' => [ 'integer', 'null' ] ],
+                        'views'         => [ 'type' => [ 'integer', 'null' ] ],
                         'reading_time'  => [ 'type' => [ 'integer', 'null' ] ],
                     ],
                 ],
@@ -82,6 +83,7 @@ class RestFields {
         $int_keys = [
             'reactions'    => '_devto_wp_importer_devto_reactions',
             'comments'     => '_devto_wp_importer_devto_comments',
+            'views'        => '_devto_wp_importer_devto_views',
             'reading_time' => '_devto_wp_importer_devto_reading_time',
         ];
 

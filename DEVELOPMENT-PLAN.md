@@ -186,10 +186,11 @@ This is the core engine. It orchestrates the import process:
 | `_sdwp_devto_edited_at` | `edited_at` timestamp | Change detection for update optimization |
 | `_sdwp_devto_published_at` | `published_at` timestamp | Original publish date |
 | `_sdwp_devto_canonical_url` | Canonical URL | SEO reference |
-| `_sdwp_devto_reactions` | Reaction count | Engagement metric |
-| `_sdwp_devto_comments` | Comment count | Engagement metric |
-| `_sdwp_devto_reading_time` | Reading time in minutes | Display metric |
-| `_sdwp_last_imported` | Timestamp of last import | Audit trail |
+| `_devto_wp_importer_devto_reactions` | Reaction count | Engagement metric |
+| `_devto_wp_importer_devto_comments` | Comment count | Engagement metric |
+| `_devto_wp_importer_devto_views` | View count from `/api/analytics/totals` | Engagement metric |
+| `_devto_wp_importer_devto_reading_time` | Reading time in minutes | Display metric |
+| `_devto_wp_importer_last_imported` | Timestamp of last import | Audit trail |
 
 #### Lookup Query (Checking for Existing Post):
 

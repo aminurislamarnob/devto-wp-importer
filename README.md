@@ -9,6 +9,7 @@ It includes duplicate prevention via Dev.to article ID mapping and incremental u
 - Duplicate prevention using post meta mapping (`_devto_wp_importer_devto_id`)
 - Smart updates using Dev.to `edited_at` change detection
 - Full content import (title, HTML body, excerpt, tags, and metadata)
+- Dev.to engagement import (reactions, comments, and view counts)
 - Cover image sideloading to featured image
 - Configurable post status, author, and import scope (published or all)
 - Encrypted API key storage

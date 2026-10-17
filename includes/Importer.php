@@ -146,6 +146,12 @@ class Importer {
 		$remote_edited = $article_summary['edited_at'] ?? '';
 
 		if ( ! empty( $stored_edited ) && $stored_edited === $remote_edited ) {
+			$analytics = $this->api_client->get_article_analytics( $devto_id );
+
+			if ( ! is_wp_error( $analytics ) ) {
+				$this->save_article_analytics( $existing_post->ID, $analytics );
+			}
+
 			$this->results['skipped']++;
 			$this->results['messages'][] = sprintf(
 				/* translators: %s: Article title */
@@ -171,6 +177,8 @@ class Importer {
 
 		usleep( 200000 );
 
+		$analytics = $this->api_client->get_article_analytics( $devto_id );
+
 		$post_data       = $this->map_article_to_post_data( $full_article );
 		$post_data['ID'] = $existing_post->ID;
 		$post_data       = apply_filters( 'devto_wp_importer_article_post_data', $post_data, $full_article, 'update' );
@@ -188,6 +196,9 @@ class Importer {
 		}
 
 		$this->save_article_meta( $existing_post->ID, $full_article );
+		if ( ! is_wp_error( $analytics ) ) {
+			$this->save_article_analytics( $existing_post->ID, $analytics );
+		}
 		$this->sync_tags( $existing_post->ID, $full_article );
 		$this->sync_cover_image( $existing_post->ID, $full_article );
 
@@ -219,6 +230,8 @@ class Importer {
 
 		usleep( 200000 );
 
+		$analytics = $this->api_client->get_article_analytics( $devto_id );
+
 		$post_data = $this->map_article_to_post_data( $full_article );
 		$post_data = apply_filters( 'devto_wp_importer_article_post_data', $post_data, $full_article, 'create' );
 		$post_id   = wp_insert_post( $post_data, true );
@@ -235,6 +248,9 @@ class Importer {
 		}
 
 		$this->save_article_meta( $post_id, $full_article );
+		if ( ! is_wp_error( $analytics ) ) {
+			$this->save_article_analytics( $post_id, $analytics );
+		}
 		$this->sync_tags( $post_id, $full_article );
 		$this->sync_cover_image( $post_id, $full_article );
 
@@ -305,6 +321,18 @@ class Importer {
 		foreach ( $meta as $key => $value ) {
 			update_post_meta( $post_id, $key, $value );
 		}
+	}
+
+	private function save_article_analytics( $post_id, $analytics ) {
+		$views = 0;
+
+		if ( isset( $analytics['page_views']['total'] ) ) {
+			$views = absint( $analytics['page_views']['total'] );
+		} elseif ( isset( $analytics['views'] ) ) {
+			$views = absint( $analytics['views'] );
+		}
+
+		update_post_meta( $post_id, '_devto_wp_importer_devto_views', $views );
 	}
 
 	private function sync_tags( $post_id, $article ) {

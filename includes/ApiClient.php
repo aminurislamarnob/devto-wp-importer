@@ -66,6 +66,15 @@ class ApiClient {
 		return $this->request( '/articles/' . absint( $article_id ) );
 	}
 
+	public function get_article_analytics( $article_id ) {
+		return $this->request(
+			'/analytics/totals',
+			[
+				'article_id' => absint( $article_id ),
+			]
+		);
+	}
+
 	public static function encrypt( $value ) {
 		$value = sanitize_text_field( $value );
 
