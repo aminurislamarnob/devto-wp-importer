@@ -10,6 +10,7 @@ class ApiClient {
 
 	private const BASE_URL = 'https://dev.to/api';
 	private const PER_PAGE = 100;
+	private const FOLLOWERS_PER_PAGE = 1000;
 	private const MAX_RETRIES = 3;
 
 	/**
@@ -66,6 +67,46 @@ class ApiClient {
 		return $this->request( '/articles/' . absint( $article_id ) );
 	}
 
+	/**
+	 * Count the account's Dev.to followers. The API only lists them, so this
+	 * pages through the list (up to 1000 a page) and counts.
+	 *
+	 * @return int|\WP_Error
+	 */
+	public function get_followers_count() {
+		$count = 0;
+		$page  = 1;
+
+		while ( true ) {
+			$followers = $this->request(
+				'/followers/users',
+				[
+					'page'     => $page,
+					'per_page' => self::FOLLOWERS_PER_PAGE,
+				]
+			);
+
+			if ( is_wp_error( $followers ) ) {
+				return $followers;
+			}
+
+			if ( ! is_array( $followers ) ) {
+				break;
+			}
+
+			$count += count( $followers );
+
+			if ( count( $followers ) < self::FOLLOWERS_PER_PAGE ) {
+				break;
+			}
+
+			++$page;
+			usleep( 200000 );
+		}
+
+		return $count;
+	}
+
 	public function get_article_analytics( $article_id ) {
 		return $this->request(
 			'/analytics/totals',
@@ -98,10 +139,10 @@ class ApiClient {
 			return '';
 		}
 
-		return $this->decrypt( $encrypted );
+		return self::decrypt( $encrypted );
 	}
 
-	private function decrypt( $value ) {
+	public static function decrypt( $value ) {
 		if ( empty( $value ) ) {
 			return '';
 		}

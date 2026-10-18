@@ -80,6 +80,8 @@ class Importer {
 			$this->process_article( $article_summary );
 		}
 
+		$this->save_followers_count();
+
 		delete_transient( 'devto_wp_importer_import_lock' );
 
 		do_action( 'devto_wp_importer_after_import', $this->results );
@@ -146,6 +148,10 @@ class Importer {
 		$remote_edited = $article_summary['edited_at'] ?? '';
 
 		if ( ! empty( $stored_edited ) && $stored_edited === $remote_edited ) {
+			// The content is unchanged, but its reactions, comments and views
+			// keep moving on Dev.to: refresh them on every import.
+			$this->save_counts( $existing_post->ID, $article_summary );
+
 			$analytics = $this->api_client->get_article_analytics( $devto_id );
 
 			if ( ! is_wp_error( $analytics ) ) {
@@ -321,6 +327,51 @@ class Importer {
 		foreach ( $meta as $key => $value ) {
 			update_post_meta( $post_id, $key, $value );
 		}
+	}
+
+	/**
+	 * Refresh the Dev.to reaction and comment counts from an article, as
+	 * listed or fetched in full. Only the Dev.to snapshot is written; the
+	 * site's own claps and views live in separate keys, so this can run on
+	 * every import without double counting them.
+	 *
+	 * @param int   $post_id Post ID.
+	 * @param array $article Dev.to article data.
+	 *
+	 * @return void
+	 */
+	public function save_counts( $post_id, $article ) {
+		$counts = [
+			'_devto_wp_importer_devto_reactions' => 'public_reactions_count',
+			'_devto_wp_importer_devto_comments'  => 'comments_count',
+		];
+
+		foreach ( $counts as $meta_key => $field ) {
+			if ( isset( $article[ $field ] ) ) {
+				update_post_meta( $post_id, $meta_key, absint( $article[ $field ] ) );
+			}
+		}
+	}
+
+	/**
+	 * Store the account's Dev.to follower count for the frontend's stats.
+	 * Keeps the last known count if Dev.to can't be reached.
+	 *
+	 * @return void
+	 */
+	private function save_followers_count() {
+		$followers = $this->api_client->get_followers_count();
+
+		if ( is_wp_error( $followers ) ) {
+			$this->results['messages'][] = sprintf(
+				/* translators: %s: Error message from Dev.to API */
+				__( 'Could not update the follower count: %s', 'devto-wp-importer' ),
+				$followers->get_error_message()
+			);
+			return;
+		}
+
+		update_option( 'devto_wp_importer_followers_count', absint( $followers ) );
 	}
 
 	private function save_article_analytics( $post_id, $analytics ) {

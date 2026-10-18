@@ -2,6 +2,8 @@
 
 namespace WeLabs\DevtoWpImporter;
 
+use WeLabs\DevtoWpImporter\Engagement\Turnstile;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -96,6 +98,32 @@ class Admin {
 				'default'           => 'published',
 			]
 		);
+
+		register_setting(
+			'devto_wp_importer_settings',
+			Turnstile::SECRET_OPTION,
+			[
+				'type'              => 'string',
+				'sanitize_callback' => [ $this, 'sanitize_turnstile_secret' ],
+			]
+		);
+	}
+
+	/**
+	 * Encrypt a new Turnstile secret; a blank field keeps the saved one.
+	 *
+	 * @param string $value Submitted secret.
+	 *
+	 * @return string
+	 */
+	public function sanitize_turnstile_secret( $value ) {
+		$value = sanitize_text_field( $value );
+
+		if ( '' === $value ) {
+			return get_option( Turnstile::SECRET_OPTION, '' );
+		}
+
+		return ApiClient::encrypt( $value );
 	}
 
 	public function sanitize_api_key( $value ) {

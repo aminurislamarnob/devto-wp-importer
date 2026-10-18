@@ -2,6 +2,13 @@
 
 namespace WeLabs\DevtoWpImporter;
 
+use WeLabs\DevtoWpImporter\Engagement\Comments;
+use WeLabs\DevtoWpImporter\Engagement\Counters;
+use WeLabs\DevtoWpImporter\Engagement\Limiter;
+use WeLabs\DevtoWpImporter\Engagement\PostAdmin;
+use WeLabs\DevtoWpImporter\Engagement\RestController;
+use WeLabs\DevtoWpImporter\Engagement\Turnstile;
+
 /**
  * DevtoWpImporter class
  *
@@ -14,7 +21,7 @@ final class DevtoWpImporter {
      *
      * @var string
      */
-    public $version = '0.0.2';
+    public $version = '0.1.0';
 
     /**
      * Instance of self
@@ -144,8 +151,8 @@ final class DevtoWpImporter {
         defined( 'DEVTO_WP_IMPORTER_INC_DIR' ) || define( 'DEVTO_WP_IMPORTER_INC_DIR', DEVTO_WP_IMPORTER_DIR . '/includes' );
         defined( 'DEVTO_WP_IMPORTER_TEMPLATE_DIR' ) || define( 'DEVTO_WP_IMPORTER_TEMPLATE_DIR', DEVTO_WP_IMPORTER_DIR . '/templates' );
         defined( 'DEVTO_WP_IMPORTER_PLUGIN_ASSET' ) || define( 'DEVTO_WP_IMPORTER_PLUGIN_ASSET', plugins_url( 'assets', DEVTO_WP_IMPORTER_FILE ) );
-        defined( 'DEVTO_WP_IMPORTER_PLUGIN_ADMIN_ASSET' ) || define( 'DEVTO_WP_IMPORTER_PLUGIN_ADMIN_ASSET' , DEVTO_WP_IMPORTER_PLUGIN_ASSET . '/admin' );
-        defined( 'DEVTO_WP_IMPORTER_PLUGIN_PUBLIC_ASSET' ) || define( 'DEVTO_WP_IMPORTER_PLUGIN_PUBLIC_ASSET' , DEVTO_WP_IMPORTER_PLUGIN_ASSET . '/public' );
+        defined( 'DEVTO_WP_IMPORTER_PLUGIN_ADMIN_ASSET' ) || define( 'DEVTO_WP_IMPORTER_PLUGIN_ADMIN_ASSET', DEVTO_WP_IMPORTER_PLUGIN_ASSET . '/admin' );
+        defined( 'DEVTO_WP_IMPORTER_PLUGIN_PUBLIC_ASSET' ) || define( 'DEVTO_WP_IMPORTER_PLUGIN_PUBLIC_ASSET', DEVTO_WP_IMPORTER_PLUGIN_ASSET . '/public' );
 
         // give a way to turn off loading styles and scripts from parent theme
         defined( 'DEVTO_WP_IMPORTER_LOAD_STYLE' ) || define( 'DEVTO_WP_IMPORTER_LOAD_STYLE', true );
@@ -194,7 +201,17 @@ final class DevtoWpImporter {
         $this->container['importer']   = new Importer( $this->container['api_client'] );
         $this->container['admin']      = new Admin( $this->container['importer'] );
         $this->container['scripts']    = new Assets();
-        $this->container['rest_fields'] = new RestFields();
+        $this->container['counters']   = new Counters();
+        $this->container['limiter']    = new Limiter();
+        $this->container['turnstile']  = new Turnstile();
+        $this->container['rest_fields'] = new RestFields( $this->container['counters'] );
+        $this->container['engagement_api'] = new RestController(
+            $this->container['counters'],
+            $this->container['limiter'],
+            new Comments(),
+            $this->container['turnstile']
+        );
+        $this->container['post_admin'] = new PostAdmin( $this->container['counters'] );
     }
 
     /**
@@ -262,7 +279,7 @@ final class DevtoWpImporter {
 			'variation_data' => $variation_data,
 			'variation' => $variation
 		] );
-     * 
+     *
      * @param mixed  $template_name
      * @param array  $args          (default: array())
      * @param string $template_path (default: '')
@@ -270,7 +287,7 @@ final class DevtoWpImporter {
      *
      * @return void
      */
-    function get_template( $template_name, $args = [] ) {
+    public function get_template( $template_name, $args = [] ) {
         if ( $args && is_array( $args ) ) {
             extract( $args ); // phpcs:ignore
         }
