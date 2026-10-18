@@ -3,7 +3,7 @@
  * Plugin Name: Devto Wp Importer
  * Plugin URI:  https://wordpress.org/plugins/devto-importer/
  * Description: Import you Dev.to posts to your WordPress site by one click
- * Version: 0.0.2
+ * Version: 0.1.0
  * Author: WeLabs
  * Author URI: https://wordpress.org/plugins/devto-importer/
  * Text Domain: devto-wp-importer

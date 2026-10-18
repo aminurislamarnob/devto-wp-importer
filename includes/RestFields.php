@@ -2,6 +2,8 @@
 
 namespace WeLabs\DevtoWpImporter;
 
+use WeLabs\DevtoWpImporter\Engagement\Counters;
+
 if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
@@ -14,9 +16,18 @@ if ( ! defined( 'ABSPATH' ) ) {
 class RestFields {
 
     /**
-     * Constructor.
+     * @var Counters
      */
-    public function __construct() {
+    private $counters;
+
+    /**
+     * Constructor.
+     *
+     * @param Counters $counters Engagement counters.
+     */
+    public function __construct( Counters $counters ) {
+        $this->counters = $counters;
+
         add_action( 'rest_api_init', [ $this, 'register_rest_fields' ] );
     }
 
@@ -52,6 +63,7 @@ class RestFields {
                     'type'        => 'object',
                     'context'     => [ 'view', 'edit' ],
                     'properties'  => [
+                        'url'           => [ 'type' => [ 'string', 'null' ] ],
                         'edited_at'     => [ 'type' => [ 'string', 'null' ] ],
                         'published_at'  => [ 'type' => [ 'string', 'null' ] ],
                         'body_markdown' => [ 'type' => [ 'string', 'null' ] ],
@@ -63,6 +75,45 @@ class RestFields {
                 ],
             ]
         );
+
+        $count_schema = [
+            'type'       => 'object',
+            'properties' => [
+                'devto' => [ 'type' => 'integer' ],
+                'site'  => [ 'type' => 'integer' ],
+                'total' => [ 'type' => 'integer' ],
+            ],
+        ];
+
+        register_rest_field(
+            'post',
+            'engagement',
+            [
+                'get_callback' => [ $this, 'get_engagement_rest_field' ],
+                'schema'       => [
+                    'description' => __( 'Claps, comments and views: the Dev.to snapshot, the site\'s own count and their total.', 'devto-wp-importer' ),
+                    'type'        => 'object',
+                    'context'     => [ 'view', 'edit' ],
+                    'readonly'    => true,
+                    'properties'  => [
+                        'claps'    => $count_schema,
+                        'comments' => $count_schema,
+                        'views'    => $count_schema,
+                    ],
+                ],
+            ]
+        );
+    }
+
+    /**
+     * Build the `engagement` REST field value for a post.
+     *
+     * @param array $post Post data array from the REST response.
+     *
+     * @return array
+     */
+    public function get_engagement_rest_field( $post ) {
+        return $this->counters->get( isset( $post['id'] ) ? absint( $post['id'] ) : 0 );
     }
 
     /**
@@ -76,6 +127,7 @@ class RestFields {
         $post_id = isset( $post['id'] ) ? absint( $post['id'] ) : 0;
 
         $string_keys = [
+            'url'          => '_devto_wp_importer_devto_url',
             'edited_at'    => '_devto_wp_importer_devto_edited_at',
             'published_at' => '_devto_wp_importer_devto_published_at',
         ];

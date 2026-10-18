@@ -9,6 +9,7 @@ $post_status   = get_option( 'devto_wp_importer_post_status', 'publish' );
 $post_author   = absint( get_option( 'devto_wp_importer_post_author', 0 ) );
 $import_scope  = get_option( 'devto_wp_importer_import_scope', 'published' );
 $last_import   = get_option( 'devto_wp_importer_last_import_result', null );
+$turnstile_src = welabs_devto_wp_importer()->turnstile ? welabs_devto_wp_importer()->turnstile->secret_source() : '';
 ?>
 
 <div class="wrap devto-wp-importer-wrap">
@@ -50,6 +51,31 @@ $last_import   = get_option( 'devto_wp_importer_last_import_result', null );
 								?>
 							</span>
 						<?php endif; ?>
+					</div>
+
+					<div class="devto-wp-importer-field-group">
+						<label for="devto_wp_importer_turnstile_secret">
+							<?php esc_html_e( 'Turnstile Secret Key (comments)', 'devto-wp-importer' ); ?>
+						</label>
+						<input
+							type="password"
+							name="devto_wp_importer_turnstile_secret"
+							id="devto_wp_importer_turnstile_secret"
+							value=""
+							placeholder="<?php echo 'plugin' === $turnstile_src ? esc_attr__( '***************** (key is saved)', 'devto-wp-importer' ) : esc_attr__( 'Optional', 'devto-wp-importer' ); ?>"
+							autocomplete="off"
+						/>
+						<span class="description">
+							<?php
+							if ( 'plugin' === $turnstile_src ) {
+								esc_html_e( 'Frontend comments are verified with this key. Enter a new key to replace it, or leave blank to keep it.', 'devto-wp-importer' );
+							} elseif ( 'contact-form-7' === $turnstile_src ) {
+								esc_html_e( 'Frontend comments are verified with Contact Form 7\'s Turnstile key; nothing to set here. Enter a key only to use a different one.', 'devto-wp-importer' );
+							} else {
+								esc_html_e( 'Frontend comments need a Cloudflare Turnstile secret key, from this field or Contact Form 7\'s Turnstile integration. Until one is set, the comment form is unavailable.', 'devto-wp-importer' );
+							}
+							?>
+						</span>
 					</div>
 
 					<div class="devto-wp-importer-field-divider"></div>

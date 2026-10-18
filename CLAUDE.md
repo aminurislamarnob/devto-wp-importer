@@ -12,6 +12,7 @@ WordPress plugin that imports Dev.to articles into WordPress posts via the Forem
 composer install                # Install all dependencies (dev + prod)
 composer phpcs                  # Run PHPCS with WordPress coding standards
 composer phpcbf                 # Auto-fix coding standard violations
+composer test                   # PHPUnit unit tests (tests/Unit, WordPress stubbed in tests/bootstrap.php)
 composer install --optimize-autoloader --no-dev -q   # Production install
 bin/build.sh                    # Build release ZIP (runs composer prod install internally)
 ```
@@ -29,7 +30,12 @@ CI runs PHPCS on changed PHP files only (`.github/workflows/phpcs.yml`).
 - `admin` (`Admin`) — Settings page, AJAX endpoint, admin notices. Receives `Importer` via constructor.
 - `scripts` (`Assets`) — Enqueues admin JS/CSS only on the plugin's page (`posts_page_devto-wp-importer`).
 
-**Import flow:** List all articles (paginated) -> for each: find existing post by meta -> skip if `edited_at` unchanged -> otherwise fetch full article -> create or update WP post + meta + tags + cover image sideload.
+**Import flow:** List all articles (paginated) -> for each: find existing post by meta -> skip if `edited_at` unchanged (but still refresh reactions, comments and views via `Importer::save_counts()`) -> otherwise fetch full article -> create or update WP post + meta + tags + cover image sideload. After the loop, the Dev.to follower count is stored in `devto_wp_importer_followers_count`.
+
+**Engagement (`includes/Engagement/`, namespace `WeLabs\DevtoWpImporter\Engagement`):** claps, comments and views for the headless frontend. Every metric is two counts, a Dev.to snapshot the importer overwrites and the site's own count, added together only when read (`Counters::get()`), so imports never double count. Never write site counts from the importer or Dev.to counts from visitor code.
+- `Counters` — meta keys, totals, site increments; `Limiter` — 24-hour view dedupe, 50-clap cap, 60 requests/minute, all in transients keyed by a salted IP hash; `Turnstile` — token verification (own option, else Contact Form 7's secret); `Comments` — native WP comments via `wp_new_comment()`, one level of replies, Markdown stored entity-encoded with the `_devto_wp_importer_markdown` meta flag; `RestController` — public routes under `devto-wp-importer/v1`; `PostAdmin` — Posts list columns and the Engagement meta box.
+- `RestFields` adds the `engagement` field (and `devto_meta.url`) to post responses.
+- Unit tests cover the merge, limit and Markdown storage rules; keep them passing when touching `Counters`, `Limiter`, `Comments` or `Importer::save_counts()`.
 
 **Post meta prefix:** `_devto_wp_importer_` (e.g., `_devto_wp_importer_devto_id`, `_devto_wp_importer_devto_edited_at`).
 

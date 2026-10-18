@@ -2,6 +2,13 @@
 
 namespace WeLabs\DevtoWpImporter;
 
+use WeLabs\DevtoWpImporter\Engagement\Comments;
+use WeLabs\DevtoWpImporter\Engagement\Counters;
+use WeLabs\DevtoWpImporter\Engagement\Limiter;
+use WeLabs\DevtoWpImporter\Engagement\PostAdmin;
+use WeLabs\DevtoWpImporter\Engagement\RestController;
+use WeLabs\DevtoWpImporter\Engagement\Turnstile;
+
 /**
  * DevtoWpImporter class
  *
@@ -14,7 +21,7 @@ final class DevtoWpImporter {
      *
      * @var string
      */
-    public $version = '0.0.2';
+    public $version = '0.1.0';
 
     /**
      * Instance of self
@@ -194,7 +201,17 @@ final class DevtoWpImporter {
         $this->container['importer']   = new Importer( $this->container['api_client'] );
         $this->container['admin']      = new Admin( $this->container['importer'] );
         $this->container['scripts']    = new Assets();
-        $this->container['rest_fields'] = new RestFields();
+        $this->container['counters']   = new Counters();
+        $this->container['limiter']    = new Limiter();
+        $this->container['turnstile']  = new Turnstile();
+        $this->container['rest_fields'] = new RestFields( $this->container['counters'] );
+        $this->container['engagement_api'] = new RestController(
+            $this->container['counters'],
+            $this->container['limiter'],
+            new Comments(),
+            $this->container['turnstile']
+        );
+        $this->container['post_admin'] = new PostAdmin( $this->container['counters'] );
     }
 
     /**
