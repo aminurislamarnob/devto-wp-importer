@@ -151,8 +151,8 @@ final class DevtoWpImporter {
         defined( 'DEVTO_WP_IMPORTER_INC_DIR' ) || define( 'DEVTO_WP_IMPORTER_INC_DIR', DEVTO_WP_IMPORTER_DIR . '/includes' );
         defined( 'DEVTO_WP_IMPORTER_TEMPLATE_DIR' ) || define( 'DEVTO_WP_IMPORTER_TEMPLATE_DIR', DEVTO_WP_IMPORTER_DIR . '/templates' );
         defined( 'DEVTO_WP_IMPORTER_PLUGIN_ASSET' ) || define( 'DEVTO_WP_IMPORTER_PLUGIN_ASSET', plugins_url( 'assets', DEVTO_WP_IMPORTER_FILE ) );
-        defined( 'DEVTO_WP_IMPORTER_PLUGIN_ADMIN_ASSET' ) || define( 'DEVTO_WP_IMPORTER_PLUGIN_ADMIN_ASSET' , DEVTO_WP_IMPORTER_PLUGIN_ASSET . '/admin' );
-        defined( 'DEVTO_WP_IMPORTER_PLUGIN_PUBLIC_ASSET' ) || define( 'DEVTO_WP_IMPORTER_PLUGIN_PUBLIC_ASSET' , DEVTO_WP_IMPORTER_PLUGIN_ASSET . '/public' );
+        defined( 'DEVTO_WP_IMPORTER_PLUGIN_ADMIN_ASSET' ) || define( 'DEVTO_WP_IMPORTER_PLUGIN_ADMIN_ASSET', DEVTO_WP_IMPORTER_PLUGIN_ASSET . '/admin' );
+        defined( 'DEVTO_WP_IMPORTER_PLUGIN_PUBLIC_ASSET' ) || define( 'DEVTO_WP_IMPORTER_PLUGIN_PUBLIC_ASSET', DEVTO_WP_IMPORTER_PLUGIN_ASSET . '/public' );
 
         // give a way to turn off loading styles and scripts from parent theme
         defined( 'DEVTO_WP_IMPORTER_LOAD_STYLE' ) || define( 'DEVTO_WP_IMPORTER_LOAD_STYLE', true );
@@ -279,7 +279,7 @@ final class DevtoWpImporter {
 			'variation_data' => $variation_data,
 			'variation' => $variation
 		] );
-     * 
+     *
      * @param mixed  $template_name
      * @param array  $args          (default: array())
      * @param string $template_path (default: '')
@@ -287,7 +287,7 @@ final class DevtoWpImporter {
      *
      * @return void
      */
-    function get_template( $template_name, $args = [] ) {
+    public function get_template( $template_name, $args = [] ) {
         if ( $args && is_array( $args ) ) {
             extract( $args ); // phpcs:ignore
         }

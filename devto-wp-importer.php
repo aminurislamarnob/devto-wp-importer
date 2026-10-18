@@ -9,7 +9,7 @@
  * Text Domain: devto-wp-importer
  * WC requires at least: 5.0.0
  * Domain Path: /languages/
- * Requires Plugins: 
+ * Requires Plugins:
  * License: GPL2
  */
 use WeLabs\DevtoWpImporter\DevtoWpImporter;
